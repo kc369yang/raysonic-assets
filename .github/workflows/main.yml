@@ -1,0 +1,25 @@
+name: 自动刷新CDN
+
+on:
+  push:
+    paths:
+      - 'pics/**'
+
+jobs:
+  refresh-cdn:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 获取所有变更的图片文件
+        id: changed-files
+        uses: tj-actions/changed-files@v41
+        with:
+          files: |
+            pics/**
+
+      - name: 发送刷新请求到 jsDelivr
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "正在刷新: $file"
+            curl -s "https://purge.jsdelivr.net/gh/kc369yang/raysonic-assets@main/$file"
+          done
